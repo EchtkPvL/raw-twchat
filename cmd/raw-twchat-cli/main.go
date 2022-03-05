@@ -33,6 +33,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	nick := os.Getenv("TW_NICK")
+	if nick == "" {
+		log.Println("TW_NICK environment variable missing")
+		nick = "ircdefault"
+	}
+
 	var conn net.Conn
 	var err error
 	if insecure != nil && *insecure {
@@ -51,6 +57,12 @@ func main() {
 	log.Printf("Connected to %v\n", conn.RemoteAddr())
 	conn.Write([]byte(fmt.Sprintf("PASS oauth:%s\r\n", pass)))
 	log.Println("< PASS oauth:***")
+
+	conn.Write([]byte(fmt.Sprintf("NICK %s\r\n", nick)))
+	log.Printf("< NICK %s\n", nick)
+
+	conn.Write([]byte(fmt.Sprintf("CAP REQ :twitch.tv/membership twitch.tv/commands\r\n")))
+	log.Println("< CAP REQ :twitch.tv/membership twitch.tv/commands")
 
 	var (
 		done = make(chan bool, 1)
